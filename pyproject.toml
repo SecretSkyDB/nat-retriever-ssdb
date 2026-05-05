@@ -1,0 +1,74 @@
+[build-system]
+# Pin setuptools<77 so PEP 639 metadata fields don't trip Twine 6.2 `twine check`.
+requires = ["setuptools>=68,<77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nat-retriever-ssdb"
+version = "0.2.1"
+description = "SecretSkyDB (SSDB) retriever provider for the NVIDIA NeMo Agent Toolkit."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Hillel Avni", email = "hillel.avni@gmail.com" }]
+maintainers = [{ name = "SecretSkyDB", email = "hillel.avni@gmail.com" }]
+keywords = [
+  "nvidia",
+  "nemo",
+  "agent-toolkit",
+  "nat",
+  "retriever",
+  "rag",
+  "ssdb",
+  "secretskydb",
+  "encrypted-search",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Healthcare Industry",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Security :: Cryptography",
+]
+dependencies = [
+  "httpx>=0.27",
+  "pydantic>=2",
+]
+
+[project.optional-dependencies]
+# The full toolkit is required for runtime registration but kept optional so the
+# bare client (nat_retriever_ssdb.SSDBRetriever) is usable without it (e.g. in
+# the demo and CI smoke tests). When the toolkit is installed `register.py`
+# wires the entry-point group `nat.plugins`.
+#
+# Package was renamed `aiqtoolkit` -> `nvidia-nat` in 1.0; we pin against the
+# new name. Per https://docs.nvidia.com/nemo/agent-toolkit/latest/get-started/quick-start.html
+toolkit = ["nvidia-nat~=1.0"]
+dev = ["pytest>=7", "pytest-asyncio>=0.23", "respx>=0.21", "build", "twine"]
+
+[project.urls]
+# These point at the planned public Apache-2.0 home of this package.
+# The repo is created (and these URLs go live) at the SecretSkyDB ×
+# NVIDIA design-partner kickoff. Until then, the org root
+# (https://github.com/SecretSkyDB) is the only working surface.
+Homepage = "https://github.com/SecretSkyDB"
+Repository = "https://github.com/SecretSkyDB/nat-retriever-ssdb"
+Issues = "https://github.com/SecretSkyDB/nat-retriever-ssdb/issues"
+
+# Plugin discovery: the toolkit scans the `nat.plugins` entry-point group on
+# boot. See https://docs.nvidia.com/nemo/agent-toolkit/1.4/extend/plugins.html
+[project.entry-points."nat.plugins"]
+nat_retriever_ssdb = "nat_retriever_ssdb.register"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
