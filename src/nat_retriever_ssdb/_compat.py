@@ -16,10 +16,16 @@ from typing import Any
 
 try:  # pragma: no cover - exercised only when nvidia-nat is installed
     from nat.data_models.retriever import RetrieverBaseConfig as _ToolkitBase  # type: ignore
-    from nat.retriever.models import (  # type: ignore
-        RetrievedItem as _ToolkitItem,
-        RetrieverOutput as _ToolkitOutput,
-    )
+    from nat.retriever.models import RetrieverOutput as _ToolkitOutput  # type: ignore
+
+    # `RetrievedItem` was renamed to `Document` in nvidia-nat 1.6. Try the
+    # new name first and fall back to the old one so we keep compatibility
+    # with both. The class shape we depend on (`content: str`, `metadata: dict`)
+    # is unchanged across the rename.
+    try:
+        from nat.retriever.models import Document as _ToolkitItem  # type: ignore
+    except ImportError:
+        from nat.retriever.models import RetrievedItem as _ToolkitItem  # type: ignore
 
     RetrieverBaseConfig = _ToolkitBase
     RetrievedItem = _ToolkitItem

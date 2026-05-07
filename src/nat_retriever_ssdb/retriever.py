@@ -89,6 +89,13 @@ class SSDBRetriever(_ToolkitRetriever):
         if not data.get("ok"):
             raise RuntimeError(f"SSDB bridge error: {data.get('error', 'unknown')}")
 
+        # `nvidia-nat==1.6` renamed `RetrievedItem.content` to `Document.page_content`
+        # to match the langchain Document convention, AND renamed
+        # `RetrieverOutput.items` to `RetrieverOutput.results`. Detect both at
+        # runtime so we work against both the legacy schema and the 1.6+ schema.
+        _content_field = "page_content" if "page_content" in RetrievedItem.model_fields else "content"
+        _items_field = "results" if "results" in RetrieverOutput.model_fields else "items"
+
         items: list[RetrievedItem] = []
         for h in data.get("results", []):
             metadata = {
@@ -98,8 +105,8 @@ class SSDBRetriever(_ToolkitRetriever):
             }
             if self._output_fields is not None:
                 metadata = {k: v for k, v in metadata.items() if k in self._output_fields}
-            items.append(RetrievedItem(content=h.get("content", ""), metadata=metadata))
-        return RetrieverOutput(items=items)
+            items.append(RetrievedItem(**{_content_field: h.get("content", ""), "metadata": metadata}))
+        return RetrieverOutput(**{_items_field: items})
 
 
 __all__ = ["SSDBRetriever", "RetrievedItem", "RetrieverOutput"]

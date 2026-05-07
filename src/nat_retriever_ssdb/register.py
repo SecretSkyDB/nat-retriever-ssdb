@@ -20,9 +20,23 @@ def _register() -> None:
             register_retriever_client,
             register_retriever_provider,
         )
-        from nat.data_models.retriever import RetrieverProviderInfo  # type: ignore
+        # `RetrieverProviderInfo` moved from `nat.data_models.retriever` to
+        # `nat.builder.retriever` in `nvidia-nat>=1.5`. Try the new path
+        # first, fall back to the old one so we keep working against older
+        # toolkit installs.
+        try:
+            from nat.builder.retriever import RetrieverProviderInfo  # type: ignore  # noqa: F401
+        except ImportError:
+            from nat.data_models.retriever import RetrieverProviderInfo  # type: ignore  # noqa: F401
     except Exception:  # toolkit not installed — nothing to register
         return
+
+    # Re-import inside this scope so the decorators below see the right symbol
+    # without leaking module-level imports when the toolkit isn't installed.
+    try:
+        from nat.builder.retriever import RetrieverProviderInfo  # type: ignore
+    except ImportError:
+        from nat.data_models.retriever import RetrieverProviderInfo  # type: ignore
 
     from .config import SSDBRetrieverConfig
 
